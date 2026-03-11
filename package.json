@@ -1,0 +1,24 @@
+{
+  "name": "cloudfront-cache-invalidator-lambda",
+  "version": "1.0.0",
+  "bin": {
+    "app": "bin/app.ts"
+  },
+  "scripts": {
+    "cdk": "cdk",
+    "build": "tsc",
+    "deploy": "cdk deploy",
+    "synth": "cdk synth"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.242.0",
+    "constructs": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^22.0.0",
+    "aws-cdk": "^2.242.0",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.7.0"
+  }
+}
