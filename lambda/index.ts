@@ -18,6 +18,17 @@ const ALLOWED_DISTRIBUTION_IDS = (
   .filter((id) => id.length > 0);
 const DEFAULT_DISTRIBUTION_ID = process.env.DEFAULT_DISTRIBUTION_ID || "";
 
+const MAX_PATHS = 15;
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function htmlResponse(
   statusCode: number,
   body: string
@@ -31,7 +42,7 @@ function htmlResponse(
 
 function loginPage(error?: string): APIGatewayProxyResultV2 {
   const errorHtml = error
-    ? `<div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:14px;">${error}</div>`
+    ? `<div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:14px;">${escapeHtml(error)}</div>`
     : "";
   return htmlResponse(
     200,
@@ -107,9 +118,9 @@ function successPage(result: {
   </div>
   <dl class="info">
     <dt>ステータス</dt>
-    <dd>${result.status || "処理中"}</dd>
+    <dd>${escapeHtml(result.status || "処理中")}</dd>
     <dt>対象パス</dt>
-    <dd>${result.paths.join(", ")}</dd>
+    <dd>${escapeHtml(result.paths.join(", "))}</dd>
   </dl>
   <div class="note">
     サイトに反映されない場合は、ブラウザのキャッシュもクリアしてください（Ctrl+Shift+R または Cmd+Shift+R）
@@ -144,7 +155,7 @@ function errorPage(message: string): APIGatewayProxyResultV2 {
 <div class="card">
   <div class="error">
     <h2>エラーが発生しました</h2>
-    <p>${message}</p>
+    <p>${escapeHtml(message)}</p>
   </div>
   <p><a href="/">戻る</a></p>
 </div>
@@ -219,7 +230,19 @@ async function handleInvalidation(
   }
 
   const pathsParam = params.paths || "/*";
-  const paths = pathsParam.split(",").map((p) => p.trim());
+  const paths = pathsParam.split(",").map((p) => p.trim()).filter((p) => p.length > 0);
+
+  if (paths.length === 0) {
+    return errorPage("パスが指定されていません");
+  }
+  if (paths.length > MAX_PATHS) {
+    return errorPage(`パスの指定は${MAX_PATHS}個までです`);
+  }
+  for (const p of paths) {
+    if (!p.startsWith("/")) {
+      return errorPage(`パスは / で始まる必要があります: ${p}`);
+    }
+  }
 
   try {
     const callerReference = `invalidation-${Date.now()}`;

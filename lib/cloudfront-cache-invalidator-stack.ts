@@ -17,6 +17,11 @@ export class CloudfrontCacheInvalidatorStack extends cdk.Stack {
       this.node.tryGetContext("basicAuthPassword") ||
       process.env.BASIC_AUTH_PASSWORD ||
       "";
+    if (!basicAuthUsername || !basicAuthPassword) {
+      throw new Error(
+        "basicAuthUsername and basicAuthPassword are required. Use -c basicAuthUsername=xxx -c basicAuthPassword=xxx"
+      );
+    }
 
     const distributionIdsRaw = this.node.tryGetContext("distributionIds") || "";
     if (!distributionIdsRaw) {

@@ -100,7 +100,7 @@ curl -u admin:<パスワード> "https://<function-url>/?distributionId=<Distrib
 | パラメータ | 必須 | 説明 |
 |-----------|------|------|
 | `distributionId` | No | CloudFront ディストリビューション ID（省略時はデプロイ時に指定した1つ目を使用。デプロイ時に許可した ID のみ指定可能） |
-| `paths` | No | 無効化するパス（カンマ区切り、デフォルト: `/*`） |
+| `paths` | No | 無効化するパス（カンマ区切り、デフォルト: `/*`、`/` 開始必須、最大 15 個） |
 | `format` | No | `json` を指定すると JSON レスポンスを返す（curl 向け） |
 
 ### レスポンス例（JSON）

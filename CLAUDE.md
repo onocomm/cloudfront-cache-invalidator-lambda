@@ -23,6 +23,12 @@
 - デプロイ先は様々なAWSアカウント。`--profile`で切り替え
 - `distributionIds`は必須。IAMロールも指定IDに限定される
 
+## セキュリティ対策
+- デプロイ時に`basicAuthUsername`/`basicAuthPassword`/`distributionIds`が未指定の場合はエラーで停止
+- HTML出力の動的値はすべて`escapeHtml()`でXSSエスケープ済み
+- pathsは`/`開始必須、最大15個の制限あり
+- distributionIdは許可リストで検証後、IAMロールでも二重に制限
+
 ## 注意事項
 - `@aws-sdk/client-cloudfront`はpackage.jsonに含めない（ランタイムのものを使用）
 - `NodejsFunction`のexternalModulesで`@aws-sdk/*`を除外済み
