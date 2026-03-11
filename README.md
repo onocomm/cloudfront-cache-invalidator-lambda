@@ -1,11 +1,11 @@
 # CloudFront Cache Invalidator Lambda
 
-非エンジニアでもブラウザや curl で CloudFront のキャッシュクリアを実行できるツールです。
-AWS Lambda Function URLs で HTTP エンドポイントを公開し、Basic 認証で保護します。
+非エンジニアでもブラウザから CloudFront のキャッシュクリアを実行できるツールです。
+AWS Lambda Function URLs で HTTP エンドポイントを公開し、ログインフォームで保護します。
 
 ## セキュリティについて
 
-このツールは **Basic 認証による最低限のセキュリティ** で動作します。
+このツールは **フォーム認証による最低限のセキュリティ** で動作します。
 AWS IAM 認証やトークンベース認証ではなく、ユーザー名とパスワードによる簡易的な認証のみを提供します。
 機密性の高い環境では、追加のセキュリティ対策（IP 制限、WAF 等）を検討してください。
 
@@ -13,7 +13,7 @@ AWS IAM 認証やトークンベース認証ではなく、ユーザー名とパ
 
 デプロイ時に `-c distributionIds=...` で指定したディストリビューション ID のみ操作可能です。
 Lambda の IAM ロールも指定されたディストリビューションのみにアクセスが制限されます。
-許可されていないディストリビューション ID を指定した場合は 403 Forbidden が返されます。
+許可されていないディストリビューション ID を指定した場合はエラーが返されます。
 
 ## キャッシュクリアに関する重要な注意事項
 
@@ -75,22 +75,24 @@ npx cdk deploy --profile <profile名> \
 
 ## 使い方
 
-### 全キャッシュクリア（デフォルトのディストリビューション）
+### ブラウザから（非エンジニア向け）
+
+1. デプロイ時に出力された Function URL にブラウザでアクセス
+2. ログインフォームが表示されるので、ユーザー名とパスワードを入力
+3. 「キャッシュをクリアする」ボタンを押す
+4. 成功画面が表示されれば完了（反映まで数分）
+
+### curl から（エンジニア向け）
 
 ```bash
-curl -u admin:<パスワード> "https://<function-url>/"
-```
+# デフォルトのディストリビューションで全キャッシュクリア
+curl -u admin:<パスワード> "https://<function-url>/?format=json"
 
-### ディストリビューション ID を明示指定
+# ディストリビューション ID を明示指定
+curl -u admin:<パスワード> "https://<function-url>/?distributionId=<DistributionID>&format=json"
 
-```bash
-curl -u admin:<パスワード> "https://<function-url>/?distributionId=<DistributionID>"
-```
-
-### パス指定でクリア
-
-```bash
-curl -u admin:<パスワード> "https://<function-url>/?distributionId=<DistributionID>&paths=/images/*,/css/*"
+# パス指定でクリア
+curl -u admin:<パスワード> "https://<function-url>/?distributionId=<DistributionID>&paths=/images/*,/css/*&format=json"
 ```
 
 ### パラメータ
@@ -99,8 +101,9 @@ curl -u admin:<パスワード> "https://<function-url>/?distributionId=<Distrib
 |-----------|------|------|
 | `distributionId` | No | CloudFront ディストリビューション ID（省略時はデプロイ時に指定した1つ目を使用。デプロイ時に許可した ID のみ指定可能） |
 | `paths` | No | 無効化するパス（カンマ区切り、デフォルト: `/*`） |
+| `format` | No | `json` を指定すると JSON レスポンスを返す（curl 向け） |
 
-### レスポンス例
+### レスポンス例（JSON）
 
 ```json
 {
